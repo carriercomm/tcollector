@@ -1,6 +1,10 @@
 #!/bin/bash
-
 # Semi Universal start-stop script
+
+# Get TSD_HOST from a file that can be set in ctx
+if [ -f '/.tsdhost' ]; then
+    TSD_HOST=`cat /.tsdhost`
+fi
 
 # TSD_HOST=dns.name.of.tsd
 TCOLLECTOR_PATH=${TCOLLECTOR_PATH-'/usr/local/tcollector'}
@@ -9,13 +13,21 @@ test -n "$TSD_HOST" || {
     exit 1
 }
 
-HOSTNAME=$(hostname)
+# Try to get hostname from instance data
+HOSTNAME=$(curl -s http://instance-data.ec2.internal/latest/meta-data/public-hostname)
+if [ -z "$HOSTNAME" ]; then
+    HOSTNAME=$(curl -s `cat /var/nimbus-metadata-server-url`/latest/meta-data/public-hostname)
+    if [ -z "$HOSTNAME" ]; then
+        HOSTNAME=$(hostname -f)
+    fi
+fi
+
 PIDFILE=${PIDFILE-'/var/run/tcollector.pid'}
 PROG=$TCOLLECTOR_PATH/tcollector.py
 LOG=${LOG-'/var/log/tcollector.log'}
 COMMAND=$1
 shift
-ARGS="-c $TCOLLECTOR_PATH/collectors -H $TSD_HOST -t host=$HOSTNAME -P $PIDFILE"
+ARGS="-p 4242 -c $TCOLLECTOR_PATH/collectors -H $TSD_HOST -t host=$HOSTNAME -P $PIDFILE"
 ARGS="$ARGS $@"
 
 # Sanity checks.
