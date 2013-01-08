@@ -1,0 +1,3 @@
+[submodule "collectors"]
+	path = collectors
+	url = https://github.com/nimbusproject/phantom-sensors.git
