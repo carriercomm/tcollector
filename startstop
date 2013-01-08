@@ -2,9 +2,8 @@
 # Semi Universal start-stop script
 
 # Get TSD_HOST from a file that can be set in ctx
-if [ -f '/.tsdhost' ]; then
-    TSD_HOST=`cat /.tsdhost`
-fi
+TSD_HOST="vm-148-101.uc.futuregrid.org"
+
 
 # TSD_HOST=dns.name.of.tsd
 TCOLLECTOR_PATH=${TCOLLECTOR_PATH-'/usr/local/tcollector'}
