@@ -33,6 +33,11 @@ import subprocess
 import sys
 import threading
 import time
+try:
+    import ssl
+except ImportError:
+    ssl = None
+
 from logging.handlers import RotatingFileHandler
 from Queue import Queue
 from Queue import Empty
@@ -383,7 +388,7 @@ class SenderThread(threading.Thread):
        buffering we might need to do if we can't establish a connection
        and we need to spool to disk.  That isn't implemented yet."""
 
-    def __init__(self, reader, dryrun, host, port, self_report_stats, tags):
+    def __init__(self, reader, dryrun, host, port, self_report_stats, tags, use_ssl=False):
         """Constructor.
 
         Args:
@@ -396,6 +401,7 @@ class SenderThread(threading.Thread):
             stats into the metrics reported to TSD, as if those metrics had
             been read from a collector.
           tags: A string containing tags to append at for every data point.
+          use_ssl: set to true if you would like to use SSL when connecting to TSD
         """
         super(SenderThread, self).__init__()
 
@@ -406,6 +412,7 @@ class SenderThread(threading.Thread):
         self.tagstr = tags
         self.tsd = None
         self.last_verify = 0
+        self.ssl = use_ssl
         self.sendq = []
         self.self_report_stats = self_report_stats
 
@@ -554,6 +561,10 @@ class SenderThread(threading.Thread):
                     self.tsd = socket.socket(family, socktype, proto)
                     self.tsd.settimeout(15)
                     self.tsd.connect(sockaddr)
+
+                    if self.ssl:
+                        self.tsd = ssl.wrap_socket(self.tsd)
+
                     # if we get here it connected
                     break
                 except socket.error, msg:
@@ -669,7 +680,12 @@ def parse_cmdline(argv):
     parser.add_option('--logfile', dest='logfile', type='str',
                       default=DEFAULT_LOG,
                       help='Filename where logs are written to.')
+    parser.add_option('-S', '--use-ssl', dest='use_ssl', action='store_true',
+                      default=False,
+                      help='Use an SSL connection when connecting to OpenTSDB.')
     (options, args) = parser.parse_args(args=argv[1:])
+    if options.use_ssl is True and ssl is None:
+      parser.error('--use-ssl set, but SSL is not available!')
     if options.dedupinterval < 2:
       parser.error('--dedup-interval must be at least 2 seconds')
     if options.evictinterval <= options.dedupinterval:
@@ -732,7 +748,7 @@ def main(argv):
 
     # and setup the sender to start writing out to the tsd
     sender = SenderThread(reader, options.dryrun, options.host, options.port,
-                          not options.no_tcollector_stats, tagstr)
+                          not options.no_tcollector_stats, tagstr, use_ssl=options.use_ssl)
     sender.start()
     LOG.info('SenderThread startup complete')
 
