@@ -1,5 +1,8 @@
 #!/bin/bash
-# Semi Universal start-stop script
+# chkconfig: 345 99 01
+# description: tcollector agent daemon
+#
+# processname: tcollector.py
 
 # Get TSD_HOST from a file that can be set in ctx
 TSD_HOST="nimbus-opentsdb.no-ip.org"
