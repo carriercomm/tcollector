@@ -5,7 +5,7 @@
 # processname: tcollector.py
 
 # Get TSD_HOST from a file that can be set in ctx
-TSD_HOST="nimbus-opentsdb.no-ip.org"
+TSD_HOST="nimbus-opentsdb.no-ip.info"
 
 
 # TSD_HOST=dns.name.of.tsd
@@ -16,7 +16,7 @@ test -n "$TSD_HOST" || {
 }
 
 # Try to get hostname from instance data
-HOSTNAME=$(curl -s http://instance-data.ec2.internal/latest/meta-data/public-hostname)
+HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
 if [ -z "$HOSTNAME" ]; then
     HOSTNAME=$(curl -s `cat /var/nimbus-metadata-server-url`/latest/meta-data/public-hostname)
     if [ -z "$HOSTNAME" ]; then
