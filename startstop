@@ -16,9 +16,9 @@ test -n "$TSD_HOST" || {
 }
 
 # Try to get hostname from instance data
-HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+HOSTNAME=$(curl -m 10 -s http://169.254.169.254/latest/meta-data/public-hostname)
 if [ -z "$HOSTNAME" ]; then
-    HOSTNAME=$(curl -s `cat /var/nimbus-metadata-server-url`/latest/meta-data/public-hostname)
+    HOSTNAME=$(curl -m 10 -s `cat /var/nimbus-metadata-server-url`/latest/meta-data/public-hostname)
     if [ -z "$HOSTNAME" ]; then
         HOSTNAME=$(hostname -f)
     fi

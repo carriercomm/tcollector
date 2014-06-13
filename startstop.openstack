@@ -16,10 +16,10 @@ test -n "$TSD_HOST" || {
 }
 
 # Try to get hostname from instance data
-HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+HOSTNAME=$(curl -m 10 -s http://169.254.169.254/latest/meta-data/public-ipv4)
 while ! echo $HOSTNAME | grep '[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+' ; do
     sleep 1
-    HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+    HOSTNAME=$(curl -m 10 -s http://169.254.169.254/latest/meta-data/public-ipv4)
 done
 
 PIDFILE=${PIDFILE-'/var/run/tcollector.pid'}
